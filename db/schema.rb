@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140730173143) do
+ActiveRecord::Schema.define(version: 20140730193358) do
 
   create_table "stop_times", id: false, force: true do |t|
     t.text    "trip_id"
@@ -57,6 +57,13 @@ ActiveRecord::Schema.define(version: 20140730173143) do
     t.text    "trip_headsign"
     t.integer "direction_id"
     t.integer "shape_id"
+  end
+
+  create_table "users", force: true do |t|
+    t.string   "name"
+    t.integer  "stop_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
   end
 
 end

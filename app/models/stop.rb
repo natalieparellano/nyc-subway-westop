@@ -8,6 +8,8 @@ class Stop < ActiveRecord::Base
   has_many :to_transfers, foreign_key: "to_stop_id", class_name: "Transfer"
   has_many :from_transfers, foreign_key: "from_stop_id", class_name: "Transfer"
 
+  has_many :users
+
   def next_departing_train(route, datetime)
     stop_times.next_departing_train(self, route, datetime)
   end 
