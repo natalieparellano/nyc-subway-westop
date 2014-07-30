@@ -1,5 +1,9 @@
 source 'https://rubygems.org'
 
+# railroady
+group :development, :test do
+    gem 'railroady'
+end
 
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '4.1.4'
