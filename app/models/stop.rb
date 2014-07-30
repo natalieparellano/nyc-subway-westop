@@ -3,7 +3,7 @@ class Stop < ActiveRecord::Base
   has_many :stop_times
 
   has_many :trips, through: :stop_times
-  has_many :subway_routes, through: :trips
+  has_many :subway_routes, through: :trips # duplication
 
   has_many :to_transfers, foreign_key: "to_stop_id", class_name: "Transfer"
   has_many :from_transfers, foreign_key: "from_stop_id", class_name: "Transfer"
