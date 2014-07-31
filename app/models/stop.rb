@@ -11,6 +11,7 @@ class Stop < ActiveRecord::Base
   has_many :users
 
   # Game plan
+  # just pick one direction to start with
 
   # given a stop and a route (and maybe a time)
 
@@ -23,16 +24,28 @@ class Stop < ActiveRecord::Base
     stop_times.next_departing_train(self, route, datetime)
   end 
 
-  # we want the trip for the next arriving train
-  def next_trip_and_stop_sequence(route, datetime)
-    next_train = next_departing_train(route, datetime)
+  # we want the trip and stop sequence for the next arriving train 
 
-    return next_train.trip, next_train.stop_sequence
-  end 
+  # for that trip, we want to traverse the stops 
+  def traverse_stops(stop_time, number_of_stops)
+    trip = stop_time.trip
+    
+    i = 0
+    current_stop = stop_time
+    current_stop_sequence = stop_time.stop_sequence
 
-  # for that trip, we want to traverse the stops -- in either direction
-  # just pick one direction to start with
-  def traverse_stops(trip, stop_sequence)
+    while i < number_of_stops # and there are still stops left 
+      
+      # advance to the next stop
+      if current_stop = trip.stop_times.select { |st| 
+        st.stop_sequence == current_stop_sequence + 1
+      }[0]
+        current_stop_sequence += 1
+      end 
+      
+
+    end 
+
     # we traverse the stops on the trip, at each station we need to check if there's a transfer
 
     # if there IS a transfer, then we need to branch off and start traversing the other trips
