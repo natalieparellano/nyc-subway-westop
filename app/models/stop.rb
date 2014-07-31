@@ -19,24 +19,33 @@ class Stop < ActiveRecord::Base
   # do this...
 
   # for the first stop, find the next arriving train
-  def next_departing_train(route, datetime)
-    stop_times.next_departing_train(self, route, datetime)
+  def next_departing_train(route, direction_id, datetime)
+    stop_times.next_departing_train(self, route, direction_id, datetime)
   end 
 
   # we want the trip for the next arriving train
+  def next_trip_and_stop_sequence(route, direction_id, datetime)
+    next_train = next_departing_train(route, direction_id, datetime)
+
+    return next_train.trip, next_train.stop_sequence
+  end 
 
   # for that trip, we want to traverse the stops -- in either direction
   # just pick one direction to start with
+  def traverse_stops(trip, stop_sequence)
+    # we traverse the stops on the trip, at each station we need to check if there's a transfer
 
-  # we traverse the stops on the trip, at each station we need to check if there's a transfer
+    # if there IS a transfer, then we need to branch off and start traversing the other trips
 
-  # if there IS a transfer, then we need to branch off and start traversing the other trips
+    # we do this until we've gone 15 stops (15 is an arbitrary limit, we can let the user adjust it)
 
-  # we do this until we've gone 15 stops (15 is an arbitrary limit, we can let the user adjust it)
+    # once we're at the end, we need to return the end stop
 
-  # once we're at the end, we need to return the end stop
+    # this gives all possible stops for one user
 
-  # this gives all possible stops for one user
+  end 
+
+  
 
   # we need to do the exact same thing as above for the second starting stop and route
 
