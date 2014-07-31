@@ -8,6 +8,10 @@ Bundler.require(*Rails.groups)
 
 module NycSubwayWestop
   class Application < Rails::Application
+
+    # include core_ext
+    Dir[File.join(Rails.root, "lib", "assets", "core_ext", "*.rb")].each {|l| require l }
+    
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration should go into files in config/initializers
     # -- all .rb files in that directory are automatically loaded.
