@@ -14,51 +14,73 @@ class Stop < ActiveRecord::Base
   # just pick one direction to start with
 
   # given a stop and a route (and maybe a time)
-
   # and another stop and route (and maybe a time)
 
-  # do this...
-
-  # for the first stop, find the next arriving train
-  def next_departing_train(route, datetime)
-    stop_times.next_departing_train(self, route, datetime)
-  end 
-
-  # we want the trip and stop sequence for the next arriving train 
+  # do this... 
 
   # for that trip, we want to traverse the stops 
-  def traverse_stops(stop_time, number_of_stops)
-    trip = stop_time.trip
+  def traverse_stops(starting_route, starting_time, max_stops, stops_visited=[], possible_trips=[])
+
+    puts "########## Setting initial variables"
+
+    current_platform = self
+    puts "########## The current stop is #{current_platform.stop_name}, and the time is #{starting_time}"
+
+    current_time = starting_time
+    current_stop_time = current_platform.next_departing_train(starting_route, current_time)
     
-    i = 0
-    current_stop = stop_time
-    current_stop_sequence = stop_time.stop_sequence
+    while stops_visited.size < max_stops
+      possible_trips << stops_visited
+      stops_visited << current_platform.parent_station
+      puts "########## stops_visited are #{stops_visited} and possible_trips are #{possible_trips}"
 
-    while i < number_of_stops # and there are still stops left 
-      
-      # advance to the next stop
-      if current_stop = trip.stop_times.select { |st| 
-        st.stop_sequence == current_stop_sequence + 1
+      next_stop_time = current_stop_time.trip.stop_times.select { |st| 
+        st.stop_sequence == current_stop_time.stop_sequence+1
       }[0]
-        current_stop_sequence += 1
-      end 
-      
+      puts "########## The next stop on the #{next_stop_time.subway_route.route_short_name} line is #{next_stop_time.stop.stop_name}" if next_stop_time
 
-    end 
+      if next_stop_time && !stops_visited.include?(next_stop_time.stop.parent_station)
+        current_platform = next_stop_time.stop
+        current_time = Time.parse(next_stop_time.arrival_time)
+        current_stop_time = next_stop_time
+        puts "########## Moved to the next stop. The time is #{current_time}"
+      else 
+        puts "There are no more stops"
+        break  
+      end
 
-    # we traverse the stops on the trip, at each station we need to check if there's a transfer
+      # after the first stop, check for transfers:
+      parent_station = Stop.find(current_platform.parent_station)
+      transfers = parent_station.from_transfers
 
-    # if there IS a transfer, then we need to branch off and start traversing the other trips
+      if transfers.size > 0
+        puts "Transfers exist"
+        child_platforms = transfers.collect { |t| 
+          puts "########## You can transfer from #{t.from_stop.stop_id} to #{t.to_stop.stop_id}"
+          Stop.where("parent_station = ?", t.to_stop_id)
+        }.compact.flatten
+        .reject{ |s|
+          stops_visited.include?(s.parent_station) && s != current_platform
+        }
 
-    # we do this until we've gone 15 stops (15 is an arbitrary limit, we can let the user adjust it)
+        if child_platforms.size > 0
+          child_stop_times = child_platforms.collect { |platform|
+            puts "########## On the #{platform.stop_id} platform, checking routes"
+            routes = platform.subway_routes.uniq
+            routes.collect { |route|
+              puts "########## Finding the next departing #{route.route_short_name} train on the #{platform.stop_id} platform"
+              next_train = platform.next_departing_train(route, current_time+120)
+              puts "########## Traversing stops for that route"
+              next_train.stop.traverse_stops(next_train.subway_route, current_time, max_stops, stops_visited.dup, possible_trips) if next_train
+            }
+          }.compact         
+        end        
+      end  
+    end
 
-    # once we're at the end, we need to return the end stop
-
-    # this gives all possible stops for one user
-
+    puts "Max number of stops reached, the sequence for this trip is #{stops_visited}"
+    return possible_trips
   end 
-
-  
 
   # we need to do the exact same thing as above for the second starting stop and route
 
@@ -80,5 +102,9 @@ class Stop < ActiveRecord::Base
     end 
 
     (seconds / 60).to_f
-  end  
+  end
+
+  def next_departing_train(route, datetime)
+    stop_times.next_departing_train(self, route, datetime)
+  end   
 end
