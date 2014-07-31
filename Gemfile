@@ -5,6 +5,14 @@ group :development, :test do
     gem 'railroady'
 end
 
+# rspec
+group :development, :test do
+  gem 'rspec-rails', '~> 3.0.0'
+end
+
+# pry
+gem 'pry-rails', :group => :development
+
 # Bundle edge Rails instead: gem 'rails', github: 'rails/rails'
 gem 'rails', '4.1.4'
 # Use sqlite3 as the database for Active Record
