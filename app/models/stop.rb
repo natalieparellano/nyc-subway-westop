@@ -19,13 +19,13 @@ class Stop < ActiveRecord::Base
   # do this...
 
   # for the first stop, find the next arriving train
-  def next_departing_train(route, direction_id, datetime)
-    stop_times.next_departing_train(self, route, direction_id, datetime)
+  def next_departing_train(route, datetime)
+    stop_times.next_departing_train(self, route, datetime)
   end 
 
   # we want the trip for the next arriving train
-  def next_trip_and_stop_sequence(route, direction_id, datetime)
-    next_train = next_departing_train(route, direction_id, datetime)
+  def next_trip_and_stop_sequence(route, datetime)
+    next_train = next_departing_train(route, datetime)
 
     return next_train.trip, next_train.stop_sequence
   end 
