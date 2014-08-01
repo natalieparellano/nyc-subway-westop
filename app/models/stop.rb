@@ -35,7 +35,9 @@ class Stop < ActiveRecord::Base
       }[0]
       puts "########## The next stop on the #{next_stop_time.subway_route.route_short_name} line is #{next_stop_time.stop.stop_name}" if next_stop_time
 
-      if next_stop_time && !stops_visited.include?(next_stop_time.stop.parent_station)
+      if next_stop_time && !stops_visited.include?(next_stop_time.stop.parent_station) &&
+        next_stop_time.arrival_time[0..1].to_i < 24
+        # need to figure out how to treat times with hour greater than 24
         current_platform = next_stop_time.stop
         puts "########## Trying to parse #{next_stop_time.arrival_time}"
         current_time = Time.parse(next_stop_time.arrival_time)
