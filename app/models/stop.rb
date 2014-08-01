@@ -29,93 +29,86 @@ class Stop < ActiveRecord::Base
   def find_possible_trips(starting_route, starting_time, max_stops, stops_visited=[])
     self.class.possible_trips.clear
     traverse_stops(starting_route, starting_time, max_stops, stops_visited=[])
-    self.class.possible_trips.uniq
+    self.class.possible_trips #.uniq
   end 
 
   def traverse_stops(starting_route, starting_time, max_stops, stops_visited=[])
-    # setup state
-    puts "########## Setting initial variables"
+    
+    # setup initial state
     current_platform = self
     current_time = starting_time
-    puts "########## The current platform is #{current_platform.stop_name}, and the time is #{starting_time}"
-    current_stop_time = current_platform.next_departing_train(starting_route, current_time)
-    puts "########## The next departing train on the #{current_stop_time.subway_route.route_short_name} line will leave at #{current_stop_time.departure_time}"
+    next_train = current_platform.next_departing_train(starting_route, current_time)
 
     # check if the next stop exists, and is a valid stop
-    next_stop_time = current_stop_time.trip.stop_times.select { |st| 
-      st.stop_sequence == current_stop_time.stop_sequence+1
-    }[0]
-    puts "########## The next stop on the #{next_stop_time.subway_route.route_short_name} line is #{next_stop_time.stop.stop_name}" if next_stop_time
+    next_stop_time = next_train.trip.stop_times.select { |st| 
+      st.stop_sequence == next_train.stop_sequence+1
+    }[0] if next_train
 
-    if next_stop_time && !stops_visited.include?(next_stop_time.stop.parent_station)
-      # move to that stop
+    puts "########## The time is #{current_time}; the current platform is #{current_platform.stop_name}"
+    puts "########## The next #{next_train.subway_route.route_short_name} train will arrive at #{next_train.arrival_time}" if next_train
+    puts "########## The next stop on the train is #{next_stop_time.stop.stop_name}" if next_stop_time
+
+    if next_stop_time && !stops_visited.include?(next_stop_time.stop.parent_station) &&
+      !self.class.possible_trips.include?(stops_visited.dup.push(next_stop_time.stop.parent_station))
+      
+      # move to the next stop
       current_platform = next_stop_time.stop
-      current_time = Time.parse(next_stop_time.arrival_time.adjust_mod_24)
-      current_stop_time = next_stop_time
-      puts "########## Moved to the next stop. The time is #{current_time}"
+      current_time = Time.parse(next_stop_time.arrival_time.adjust_mod_24) # need to figure out what is the best way to deal with hours greater than 24
+      this_stop_time = next_stop_time
 
       # record movement
       stops_visited << current_platform.parent_station
       self.class.possible_trips << stops_visited
-      puts "########## Stops_visited are #{stops_visited} and possible_trips are #{self.class.possible_trips}"
+      puts "########## Moved to the next stop"
+      puts "########## The time is #{current_time}; the current platform is #{current_platform.stop_name}"
 
       # check if we need to make any more stops
       while stops_visited.size < max_stops
+
         # check for transfers
         parent_station = Stop.find(current_platform.parent_station)
         transfers = parent_station.from_transfers
+        puts "########## There are #{transfers.size} transfers from #{current_platform.stop_name}"
 
-        if transfers.size > 0
-          puts "########## The current platform is #{current_platform.stop_name}, and the time is #{starting_time}"
-          puts "########## Stops_visited are #{stops_visited} and possible_trips are #{self.class.possible_trips}"
-          puts "########## #{transfers.size} transfers exist from #{current_platform.stop_name}"
+        # find platforms for each transfer, narrow down to valid platforms (don't transfer to the opposite direction on the same line)
+        child_platforms = transfers.collect { |t| 
+          Stop.where("parent_station = ?", t.to_stop_id)
+        }.compact.flatten.reject{ |p|
+          p.parent_station == current_platform.parent_station && p != current_platform
+        } if transfers && transfers.size > 0
+        child_platforms.each { |p| puts "########## You can transfer from #{current_platform.stop_id} to #{p.stop_id}" } if child_platforms
 
-          # narrow down to valid transfers
-          child_platforms = transfers.collect { |t| 
-            Stop.where("parent_station = ?", t.to_stop_id)
-          }.compact.flatten.reject{ |s|
-            s.parent_station == current_platform.parent_station && s != current_platform
+        # find next train for each valid platform
+        child_stop_times = child_platforms.collect { |platform|
+          routes = platform.subway_routes.uniq
+          routes.collect { |route|
+            platform.next_departing_train(route, current_time)
           }
-          child_platforms.each { |s| puts "########## You can transfer from #{current_platform.stop_id} to #{s.stop_id}" }
+        }.compact.flatten.uniq if child_platforms && child_platforms.size > 0
+        child_stop_times.each { |st| puts "########## The next #{st.subway_route.route_short_name} train in the #{st.trip.direction_id} direction will depart at #{st.departure_time}" } if child_stop_times
 
-          if child_platforms.size > 0
-            child_stop_times = child_platforms.collect { |platform|
-              routes = platform.subway_routes.uniq
-              routes.collect { |route|
-                platform.next_departing_train(route, current_time)
-              }.uniq
-            }.compact.flatten.uniq
-            child_stop_times.each { |st| puts "########## On the #{st.stop_id} platform, the next departing #{st.subway_route.route_short_name} train will arrive at #{st.arrival_time}"}
+        # narrow down to valid trains (don't take a train that will duplicate a previously found trip)
+        valid_child_stop_times = child_stop_times.select{ |child_stop_time|
+          next_stop_time = child_stop_time.trip.stop_times.select { |st| 
+            st.stop_sequence == child_stop_time.stop_sequence+1
+          }[0]
+          !self.class.possible_trips.include?(stops_visited.dup.push(next_stop_time.stop.parent_station))
+        } if child_stop_times && child_stop_times.size > 0
 
-            if child_stop_times.size > 0
-              valid_child_stop_times = child_stop_times.select{ |child_stop_time|
-                next_stop_time = current_stop_time.trip.stop_times.select { |st| 
-                  st.stop_sequence == current_stop_time.stop_sequence+1
-                }[0]
-                !self.class.possible_trips.include?(stops_visited.dup.push(next_stop_time.stop.parent_station))
-              }
-
-              # for each valid transfer, start over again with the starting platform set to the transfer platform
-              if valid_child_stop_times.size > 0
-                valid_child_stop_times.each { |child_stop_time|
-                  child_stop_time.stop.traverse_stops(child_stop_time.subway_route, current_time, max_stops, stops_visited.dup)
-                }
-              else
-                break
-              end 
-            else
-              break
-            end
-          else
-            break        
-          end
+        # do the magic on valid trains
+        if valid_child_stop_times && valid_child_stop_times.size > 0
+          valid_child_stop_times.each { |child_stop_time|
+            child_stop_time.stop.traverse_stops(child_stop_time.subway_route, current_time, max_stops, stops_visited.dup)
+          }
         else
-          break        
+          puts "########## No more valid trains; breaking"
+          break
         end
       end
-      puts "########## Broke out of the loop; maybe the max number of stops was reached; the sequence for this trip is #{stops_visited}" 
+      puts "########## If no previous message, the max number of stops was reached" 
+      puts "########## Stops visited were #{stops_visited}"
     else 
-      puts "########## There are no more stops"
+      puts "########## No more valid stops (very likely, the next stop was already visited)"
     end 
   end 
 
