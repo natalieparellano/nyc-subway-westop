@@ -19,4 +19,4 @@ chambers_next_departing_north = Trip.find("B20140608WKD_041050_A..N54R").
     st.stop_sequence == 16 
   }[0]
 
-chambers_north.traverse_stops(a_train, Time.now, 3)
+chambers_north.find_possible_trips(a_train, Time.now, 3)

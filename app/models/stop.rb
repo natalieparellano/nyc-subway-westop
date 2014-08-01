@@ -10,7 +10,11 @@ class Stop < ActiveRecord::Base
 
   has_many :users
 
-  attr_accessor :possible_trips
+  POSSIBLE_TRIPS = []
+
+  def self.possible_trips
+    POSSIBLE_TRIPS
+  end
 
   # Game plan
   # just pick one direction to start with
@@ -21,9 +25,14 @@ class Stop < ActiveRecord::Base
   # do this... 
 
   # for that trip, we want to traverse the stops 
-  
-  def traverse_stops(starting_route, starting_time, max_stops, stops_visited=[], possible_trips=[])
 
+  def find_possible_trips(starting_route, starting_time, max_stops, stops_visited=[])
+    self.class.possible_trips.clear
+    traverse_stops(starting_route, starting_time, max_stops, stops_visited=[])
+    self.class.possible_trips.uniq
+  end 
+
+  def traverse_stops(starting_route, starting_time, max_stops, stops_visited=[])
     # setup state
     puts "########## Setting initial variables"
     current_platform = self
@@ -47,8 +56,8 @@ class Stop < ActiveRecord::Base
 
       # record movement
       stops_visited << current_platform.parent_station
-      possible_trips << stops_visited
-      puts "########## Stops_visited are #{stops_visited} and possible_trips are #{possible_trips}"
+      self.class.possible_trips << stops_visited
+      puts "########## Stops_visited are #{stops_visited} and possible_trips are #{self.class.possible_trips}"
 
       # check if we need to make any more stops
       while stops_visited.size < max_stops
@@ -58,7 +67,7 @@ class Stop < ActiveRecord::Base
 
         if transfers.size > 0
           puts "########## The current platform is #{current_platform.stop_name}, and the time is #{starting_time}"
-          puts "########## Stops_visited are #{stops_visited} and possible_trips are #{possible_trips}"
+          puts "########## Stops_visited are #{stops_visited} and possible_trips are #{self.class.possible_trips}"
           puts "########## #{transfers.size} transfers exist from #{current_platform.stop_name}"
 
           # narrow down to valid transfers
@@ -83,13 +92,13 @@ class Stop < ActiveRecord::Base
                 next_stop_time = current_stop_time.trip.stop_times.select { |st| 
                   st.stop_sequence == current_stop_time.stop_sequence+1
                 }[0]
-                !possible_trips.include?(stops_visited.dup.push(next_stop_time.stop.parent_station))
+                !self.class.possible_trips.include?(stops_visited.dup.push(next_stop_time.stop.parent_station))
               }
 
               # for each valid transfer, start over again with the starting platform set to the transfer platform
               if valid_child_stop_times.size > 0
                 valid_child_stop_times.each { |child_stop_time|
-                  child_stop_time.stop.traverse_stops(child_stop_time.subway_route, current_time, max_stops, stops_visited.dup, possible_trips)
+                  child_stop_time.stop.traverse_stops(child_stop_time.subway_route, current_time, max_stops, stops_visited.dup)
                 }
               else
                 break
@@ -104,11 +113,10 @@ class Stop < ActiveRecord::Base
           break        
         end
       end
-      puts "########## Max number of stops reached, the sequence for this trip is #{stops_visited}" 
+      puts "########## Broke out of the loop; maybe the max number of stops was reached; the sequence for this trip is #{stops_visited}" 
     else 
       puts "########## There are no more stops"
     end 
-    return possible_trips 
   end 
 
   # we need to do the exact same thing as above for the second starting stop and route
