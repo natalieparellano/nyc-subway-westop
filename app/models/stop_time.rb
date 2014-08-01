@@ -8,6 +8,14 @@ class StopTime < ActiveRecord::Base
   # stop actually represents a platform so there can be multiple lines for a stop, but all going in the same direction
   # parent stations (without an associated direction) are not linked to any trips
 
+  def self.next_stop(stop_time)
+    where("stop_times.trip_id = ? AND stop_times.stop_sequence = ?", stop_time.trip_id, stop_time.stop_sequence+1).limit(1)[0]
+  end 
+
+  def next_stop
+    self.class.next_stop(self)
+  end 
+
   def self.next_departing_train(stop, route, datetime)
     next_departing_train_sameday = self.next_departing_train_sameday(stop, route, datetime)
 

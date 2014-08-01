@@ -40,9 +40,7 @@ class Stop < ActiveRecord::Base
     next_train = current_platform.next_departing_train(starting_route, current_time)
 
     # check if the next stop exists, and is a valid stop
-    next_stop_time = next_train.trip.stop_times.select { |st| 
-      st.stop_sequence == next_train.stop_sequence+1
-    }[0] if next_train
+    next_stop_time = next_train.next_stop if next_train
 
     puts "########## The time is #{current_time}; the current platform is #{current_platform.stop_name}"
     puts "########## The next #{next_train.subway_route.route_short_name} train will arrive at #{next_train.arrival_time}" if next_train
@@ -67,15 +65,13 @@ class Stop < ActiveRecord::Base
 
         # check for transfers
         parent_station = Stop.find(current_platform.parent_station)
-        transfers = parent_station.from_transfers
-        puts "########## There are #{transfers.size} transfers from #{current_platform.stop_name}"
+        transfer_ids = Transfer.where("transfers.from_stop_id = ?", parent_station.stop_id).pluck(:to_stop_id)
+        puts "########## There are #{transfer_ids.size} transfers from #{current_platform.stop_name}"
 
-        # find platforms for each transfer, narrow down to valid platforms (don't transfer to the opposite direction on the same line)
-        child_platforms = transfers.collect { |t| 
-          Stop.where("parent_station = ?", t.to_stop_id)
-        }.compact.flatten.reject{ |p|
+        # find platforms for each transfer, reject invalid transfers (same line, opposite direction)
+        child_platforms = Stop.where("parent_station IN (?)", transfer_ids).reject{ |p| 
           p.parent_station == current_platform.parent_station && p != current_platform
-        } if transfers && transfers.size > 0
+        } if transfer_ids && transfer_ids.size > 0
         child_platforms.each { |p| puts "########## You can transfer from #{current_platform.stop_id} to #{p.stop_id}" } if child_platforms
 
         # find next train for each valid platform
@@ -89,9 +85,7 @@ class Stop < ActiveRecord::Base
 
         # narrow down to valid trains (don't take a train that will duplicate a previously found trip)
         valid_child_stop_times = child_stop_times.select{ |child_stop_time|
-          next_stop_time = child_stop_time.trip.stop_times.select { |st| 
-            st.stop_sequence == child_stop_time.stop_sequence+1
-          }[0]
+          next_stop_time = child_stop_time.next_stop
           !self.class.possible_trips.include?(stops_visited.dup.push(next_stop_time.stop.parent_station))
         } if child_stop_times && child_stop_times.size > 0
 
@@ -108,7 +102,7 @@ class Stop < ActiveRecord::Base
       puts "########## If no previous message, the max number of stops was reached" 
       puts "########## Stops visited were #{stops_visited}"
     else 
-      puts "########## No more valid stops (very likely, the next stop was already visited)"
+      puts "########## No more valid stops (very likely, the next stop was already visited; this is not likely to trigger due to 'no stop' because a departing train doesn't make sense without a stop)"
     end 
   end 
 
