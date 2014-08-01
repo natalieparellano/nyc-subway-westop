@@ -7,6 +7,7 @@ a_train_southbound = Trip.find("B20140608WKD_041050_A..N54R")
 chambers_south = Stop.find("A36S")
 chambers_north = Stop.find("A36N")
 chambers_parent = Stop.find("A36")
+penn_station_north = Stop.find("A28N")
 
 times_square_a_north = Stop.find("A27N")
 
@@ -19,4 +20,5 @@ chambers_next_departing_north = Trip.find("B20140608WKD_041050_A..N54R").
     st.stop_sequence == 16 
   }[0]
 
-chambers_north.find_possible_trips(a_train, Time.now, 3)
+# chambers_north.find_possible_trips(a_train, Time.now, 3)
+penn_station_north.find_possible_trips(SubwayRoute.find("A"), Time.now, 3)

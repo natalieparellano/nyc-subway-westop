@@ -33,7 +33,6 @@ class Stop < ActiveRecord::Base
   end 
 
   def traverse_stops(starting_route, starting_time, max_stops, stops_visited=[])
-    
     # setup initial state
     current_platform = self
     current_time = starting_time
@@ -51,8 +50,7 @@ class Stop < ActiveRecord::Base
       
       # move to the next stop
       current_platform = next_stop_time.stop
-      current_time = Time.parse(next_stop_time.arrival_time.adjust_mod_24) # need to figure out what is the best way to deal with hours greater than 24
-      this_stop_time = next_stop_time
+      current_time = Time.parse(next_stop_time.arrival_time.adjust_mod_24)
 
       # record movement
       stops_visited << current_platform.parent_station
@@ -80,13 +78,13 @@ class Stop < ActiveRecord::Base
           routes.collect { |route|
             platform.next_departing_train(route, current_time)
           }
-        }.compact.flatten.uniq if child_platforms && child_platforms.size > 0
+        }.flatten.compact.uniq if child_platforms && child_platforms.size > 0
         child_stop_times.each { |st| puts "########## The next #{st.subway_route.route_short_name} train in the #{st.trip.direction_id} direction will depart at #{st.departure_time}" } if child_stop_times
 
         # narrow down to valid trains (don't take a train that will duplicate a previously found trip)
         valid_child_stop_times = child_stop_times.select{ |child_stop_time|
           next_stop_time = child_stop_time.next_stop
-          !self.class.possible_trips.include?(stops_visited.dup.push(next_stop_time.stop.parent_station))
+          next_stop_time && !self.class.possible_trips.include?(stops_visited.dup.push(next_stop_time.stop.parent_station))
         } if child_stop_times && child_stop_times.size > 0
 
         # do the magic on valid trains
@@ -102,7 +100,7 @@ class Stop < ActiveRecord::Base
       puts "########## If no previous message, the max number of stops was reached" 
       puts "########## Stops visited were #{stops_visited}"
     else 
-      puts "########## No more valid stops (very likely, the next stop was already visited; this is not likely to trigger due to 'no stop' because a departing train doesn't make sense without a stop)"
+      puts "########## No more valid stops (very likely, the next stop was already visited; this line is not likely to trigger due to 'no stop' because a departing train doesn't make sense without a stop)"
     end 
   end 
 
