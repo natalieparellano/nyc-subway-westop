@@ -20,19 +20,15 @@ class Stop < ActiveRecord::Base
 
   # for that trip, we want to traverse the stops 
   def traverse_stops(starting_route, starting_time, max_stops, stops_visited=[], possible_trips=[])
+    while true
+      puts "########## Setting initial variables"
 
-    puts "########## Setting initial variables"
+      current_platform = self
+      current_time = starting_time
+      puts "########## The current platform is #{current_platform.stop_name}, and the time is #{starting_time}"
 
-    current_platform = self
-    puts "########## The current stop is #{current_platform.stop_name}, and the time is #{starting_time}"
-
-    current_time = starting_time
-    current_stop_time = current_platform.next_departing_train(starting_route, current_time)
-    
-    while stops_visited.size < max_stops
-      possible_trips << stops_visited
-      stops_visited << current_platform.parent_station
-      puts "########## stops_visited are #{stops_visited} and possible_trips are #{possible_trips}"
+      current_stop_time = current_platform.next_departing_train(starting_route, current_time)
+      puts "########## The next departing train on the #{current_stop_time.subway_route.route_short_name} line will leave at #{current_stop_time.departure_time}"
 
       next_stop_time = current_stop_time.trip.stop_times.select { |st| 
         st.stop_sequence == current_stop_time.stop_sequence+1
@@ -41,45 +37,58 @@ class Stop < ActiveRecord::Base
 
       if next_stop_time && !stops_visited.include?(next_stop_time.stop.parent_station)
         current_platform = next_stop_time.stop
+        puts "########## Trying to parse #{next_stop_time.arrival_time}"
         current_time = Time.parse(next_stop_time.arrival_time)
         current_stop_time = next_stop_time
         puts "########## Moved to the next stop. The time is #{current_time}"
       else 
-        puts "There are no more stops"
-        break  
+        puts "########## There are no more stops"
+        break
       end
 
-      # after the first stop, check for transfers:
-      parent_station = Stop.find(current_platform.parent_station)
-      transfers = parent_station.from_transfers
+      stops_visited << current_platform.parent_station
+      possible_trips << stops_visited
+      puts "########## Stops_visited are #{stops_visited} and possible_trips are #{possible_trips}"
+    
+      while stops_visited.size < max_stops
+        # after the first stop, check for transfers:
+        parent_station = Stop.find(current_platform.parent_station)
+        transfers = parent_station.from_transfers
 
-      if transfers.size > 0
-        puts "Transfers exist"
-        child_platforms = transfers.collect { |t| 
-          puts "########## You can transfer from #{t.from_stop.stop_id} to #{t.to_stop.stop_id}"
-          Stop.where("parent_station = ?", t.to_stop_id)
-        }.compact.flatten
-        .reject{ |s|
-          stops_visited.include?(s.parent_station) && s != current_platform
-        }
+        if transfers.size > 0
+          puts "########## Transfers exist"
+          child_platforms = transfers.collect { |t| 
+            puts "########## You can transfer from #{t.from_stop.stop_id} to #{t.to_stop.stop_id}"
+            Stop.where("parent_station = ?", t.to_stop_id)
+          }.compact.flatten.reject{ |s|
+            s.parent_station == current_platform.parent_station && s != current_platform
+          }
 
-        if child_platforms.size > 0
-          child_stop_times = child_platforms.collect { |platform|
-            puts "########## On the #{platform.stop_id} platform, checking routes"
-            routes = platform.subway_routes.uniq
-            routes.collect { |route|
-              puts "########## Finding the next departing #{route.route_short_name} train on the #{platform.stop_id} platform"
-              next_train = platform.next_departing_train(route, current_time+120)
-              puts "########## Traversing stops for that route"
-              next_train.stop.traverse_stops(next_train.subway_route, current_time, max_stops, stops_visited.dup, possible_trips) if next_train
-            }
-          }.compact         
-        end        
-      end  
+          if child_platforms.size > 0
+            child_stop_times = child_platforms.collect { |platform|
+              puts "########## On the #{platform.stop_id} platform, checking routes"
+              routes = platform.subway_routes.uniq
+              routes.collect { |route|
+                puts "########## Finding the next departing #{route.route_short_name} train on the #{platform.stop_id} platform"
+                platform.next_departing_train(route, current_time+120)
+              }
+            }.compact.flatten 
+
+            if child_stop_times.size > 0
+              puts "########## Traversing stops for each line"
+              child_stop_times.collect{ |child_stop_time|
+                puts "########## Traversing stops for the #{child_stop_time.subway_route.route_short_name} line"
+                child_stop_time.stop.traverse_stops(child_stop_time.subway_route, current_time, max_stops, stops_visited.dup, possible_trips) unless possible_trips.include?(stops_visited.dup.push(child_stop_time.stop.parent_station))
+              }
+            end        
+          end        
+        end  
+      end
+
+      puts "Max number of stops reached, the sequence for this trip is #{stops_visited}"
     end
 
-    puts "Max number of stops reached, the sequence for this trip is #{stops_visited}"
-    return possible_trips
+    return possible_trips 
   end 
 
   # we need to do the exact same thing as above for the second starting stop and route
