@@ -4,4 +4,8 @@ class SubwayRoute < ActiveRecord::Base
 
   has_many :stop_times, through: :trips
   has_many :stops, through: :stop_times # duplication
+
+  def parent_stations
+    stops.uniq.collect { |stop| Stop.find(stop.parent_station) }.uniq
+  end 
 end

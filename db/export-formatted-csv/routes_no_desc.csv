@@ -1,4 +1,3 @@
-agency_id,route_id,route_short_name,route_long_name,route_type,route_url,route_color,route_text_color
 "MTA NYCT",1,1,"Broadway - 7 Avenue Local",1,http://www.mta.info/nyct/service/pdf/t1cur.pdf,EE352E,""
 "MTA NYCT",2,2,"7 Avenue Express",1,http://www.mta.info/nyct/service/pdf/t2cur.pdf,EE352E,""
 "MTA NYCT",3,3,"7 Avenue Express",1,http://www.mta.info/nyct/service/pdf/t3cur.pdf,EE352E,""

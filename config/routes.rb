@@ -1,7 +1,11 @@
 Rails.application.routes.draw do
-  root "user_actions#new"
 
-  resources :user_actions
+  root 'queries#new'
+
+  resources :queries
+
+  get 'update_parent_stations1' => 'queries#update_parent_stations1', as: "update_parent_stations1"
+  
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".
 
