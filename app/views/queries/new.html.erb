@@ -1,6 +1,6 @@
 <h1>Welcome to WeStop!</h1>
 
-<div id="new_query_form">
+<div>
   <%= form_for [Query.new], remote: true do |f| %>
 
     <div>
@@ -53,29 +53,8 @@
   <% end %>
 </div>
 
-
-
 <section id="results">
 </section>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 <script>
   $(document).ready(function() {
