@@ -7,5 +7,9 @@ class SubwayRoute < ActiveRecord::Base
 
   def parent_stations
     stops.uniq.collect { |stop| Stop.find(stop.parent_station) }.uniq
-  end 
+  end
+
+  def display_name
+    route_short_name + ": " + route_long_name
+  end  
 end

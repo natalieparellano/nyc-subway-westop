@@ -6,6 +6,8 @@ Rails.application.routes.draw do
 
   get 'update_parent_stations1' => 'queries#update_parent_stations1', as: "update_parent_stations1"
   get 'update_headsigns1' => 'queries#update_headsigns1', as: "update_headsigns1"
+  get 'update_parent_stations2' => 'queries#update_parent_stations2', as: "update_parent_stations2"
+  get 'update_headsigns2' => 'queries#update_headsigns2', as: "update_headsigns2"
   
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".

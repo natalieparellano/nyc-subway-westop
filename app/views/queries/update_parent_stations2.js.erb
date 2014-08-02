@@ -1,0 +1,7 @@
+$('#query_parent_station_id2').
+  html("<%= escape_javascript(options_for_select(
+    @parent_stations2.collect { |stop| [stop.stop_name, stop.stop_id] }.sort_by { |arr| arr[1] }
+  )) %>"
+);
+
+$('#query_stop_id2').html("");

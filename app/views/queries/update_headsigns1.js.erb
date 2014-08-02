@@ -1,5 +1,5 @@
 $('#query_stop_id1').
   html("<%= escape_javascript(options_for_select(
-    @stops1
+    @stops1.trip_headsigns_for_display.sort_by { |arr| arr[1] }
   )) %>"
 );

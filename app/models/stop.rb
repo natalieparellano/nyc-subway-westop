@@ -16,12 +16,14 @@ class Stop < ActiveRecord::Base
     POSSIBLE_TRIPS
   end
 
-  def self.child_platforms_from_route_and_stop_name(route, stop_name)
-    
+  def self.child_stations(stop)
+    where("stops.parent_station = ?", stop.stop_id)
   end 
 
-  def self.trip_headsigns
-    joins(:trips).pluck(:trip_headsign).uniq
+  def self.trip_headsigns_for_display
+    joins(:trips).pluck(:trip_headsign, :stop_id).uniq.
+      reject { |arr| arr == [] }.
+      collect { |arr| [arr[1] + ": " + arr[0], arr[1]] }
   end 
 
   # Game plan
