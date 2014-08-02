@@ -1,4 +1,4 @@
-<h1>Welcome to the query</h1>
+<h1>Welcome to WeStop!</h1>
 
 <div id="new_query_form">
   <%= form_for [Query.new], remote: true do |f| %>
@@ -48,13 +48,12 @@
         <%= f.number_field :max_stops2 %><br>
       </div>
     </div>
-    
-    <br>
+    <p>*Don't worry about the final stop, it's the direction that matters.</p>
     <%= f.submit "Find common stops" %>
   <% end %>
 </div>
 
-<p>*Don't worry about the final stop, it is the direction that matters</p>
+
 
 <section id="results">
 </section>
