@@ -8,7 +8,9 @@ class QueriesController < ApplicationController
   end 
 
   def create
-    raise params.inspect
+    @query = Query.find_or_create_by(query_params)
+    @query.results = @query.take_inputs_from_user
+    @query.save
   end 
 
   # for updating the dropdown selects
@@ -37,7 +39,6 @@ class QueriesController < ApplicationController
     def query_params
       params.require(:query).permit(
         :route_id1, :route_id2, 
-        :parent_station_id1, :parent_station_id2,
         :stop_id1, :stop_id2,
         :max_stops1, :max_stops2
       )

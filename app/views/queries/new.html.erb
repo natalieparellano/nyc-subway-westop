@@ -1,7 +1,7 @@
 <h1>Welcome to the query</h1>
 
 <div id="new_query_form">
-  <%= form_for [Query.new] do |f| %>
+  <%= form_for [Query.new], remote: true do |f| %>
 
     <div>
       <h3>Person 1</h3>
@@ -56,8 +56,31 @@
 
 <p>*Don't worry about the final stop, it is the direction that matters</p>
 
+<section id="results">
+</section>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <script>
   $(document).ready(function() {
+
       $('#query_route_id1').change(function() {
         $.ajax({
           url: "<%= update_parent_stations1_path %>",
@@ -76,6 +99,7 @@
           dataType: "script"
         });
       });
+
       $('#query_route_id2').change(function() {
         $.ajax({
           url: "<%= update_parent_stations2_path %>",
@@ -94,5 +118,6 @@
           dataType: "script"
         });
       });
+
     });
 </script>

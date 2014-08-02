@@ -1,10 +1,28 @@
 class Query < ActiveRecord::Base
+  serialize :results
 
-  def take_inputs_from_user(stop1, stop2, route1, route2, num_stops1, num_stops2)
+  def take_inputs_from_user
+    stop1 = Stop.find(self.stop_id1)
+    stop2 = Stop.find(self.stop_id2)
+    route1 = SubwayRoute.find(self.route_id1)
+    route2 = SubwayRoute.find(self.route_id2)
+    num_stops1 = self.max_stops1
+    num_stops2 = self.max_stops2
+
     arr1 = stop1.find_possible_trips(route1, Time.now, num_stops1)
     arr2 = stop2.find_possible_trips(route2, Time.now, num_stops2)
 
     find_common_stops(arr1, arr2, 4)
+  end 
+
+  def results_in_words
+    results.collect { |pair|
+      pair.collect { |sequence|
+        sequence.collect { |leg|
+          "Take the #{leg[1]} to #{Stop.find(leg[0]).stop_name}"
+        }
+      }
+    }
   end 
 
   # once we have all possible stops, we need to find all pairs of stops for which the difference in latitude and longitude is small
