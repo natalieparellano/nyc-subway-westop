@@ -8,8 +8,20 @@ class QueriesController < ApplicationController
   end 
 
   def create
-    @query = Query.find_or_create_by(query_params)
-    @query.results = @query.take_inputs_from_user
+    # npa: this isn't exactly corrent, since queries are also dependent upon their creation datetime, but it will help for testing and demonstration purposes
+    saved_query = Query.where("
+      queries.route_id1 = ? AND queries.route_id2 = ? AND
+      queries.stop_id1 = ? AND queries.stop_id2 = ? AND
+      queries.max_stops1 = ? AND queries.max_stops2 = ?
+    ", 
+      params[:query][:route_id1], params[:query][:route_id2],
+      params[:query][:stop_id1], params[:query][:stop_id2],
+      params[:query][:max_stops1], params[:query][:max_stops2]
+    ).limit(1)[0] # npa: this is not the way to do it -- it should be using find_or_create_by, but this is not working due to db issues
+
+    saved_query ? @query = saved_query : @query = Query.create(query_params)
+
+    @query.results ||= @query.take_inputs_from_user
     @query.save
   end 
 

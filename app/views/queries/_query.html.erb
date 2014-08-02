@@ -1,0 +1,29 @@
+<div>
+  <% if @query.results.size > 0 %>
+    <p>Yay! There are places for you to meet up:</p>
+    <ul>
+      <% @query.results_in_words.each.with_index do |r, i| %>
+        <li><strong>Sequence <%= i+1 %>:</strong><br>
+          <ul>
+            <li>Person 1:<br>
+              <ul>
+                <% r[0].each do |leg| %>
+                  <li><%= leg %></li>
+                <% end %>
+              </ul>
+            </li>
+            <li>Person 2:<br>
+              <ul>
+                <% r[1].each do |leg| %>
+                  <li><%= leg %></li>
+                <% end %>
+              </ul>
+            </li> 
+          </ul>
+        </li><br>
+      <% end %>
+    </ul>
+  <% else %>
+    <p>Boohoo! No common stops found for your query.</p>
+  <% end %>
+</div>
