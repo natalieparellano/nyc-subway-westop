@@ -1,5 +1,6 @@
 # time_now = Time.parse('2014-07-31 07:24:58 -0700')
 
+
 a_train = SubwayRoute.find("A")
 # a_train_northbound = Trip.find("B20140608WKD_041000_A..S54R")
 # a_train_southbound = Trip.find("B20140608WKD_041050_A..N54R")
@@ -7,6 +8,7 @@ l_train = SubwayRoute.find("L")
 
 chambers_south = Stop.find("A36S")
 chambers_north = Stop.find("A36N")
+
 chambers = Stop.find("A36")
 # penn_station_north = Stop.find("A28N")
 # penn_station_south = Stop.find("A28S")

@@ -11,14 +11,13 @@ class Time
   end
 
   def next_day_of_week
-    case self.wday
-    when 0
+    if self.wday < 5
       "WKD"
-    when 6
-      "SUN"
-    else
+    elsif self.wday == 5
       "SAT"
-    end
+    elsif self.wday == 6
+      "SUN"
+    end 
   end
 
   def parse_from_hms
