@@ -45,14 +45,14 @@ class Stop < ActiveRecord::Base
     current_time = starting_time
     next_train = current_platform.next_departing_train(starting_route, current_time)
 
-    # check if the next stop exists, and is a valid stop
     next_stop_time = next_train.next_stop if next_train
 
     puts "########## The time is #{current_time}; the current platform is #{current_platform.stop_name}"
     puts "########## The next #{next_train.subway_route.route_short_name} train will arrive at #{next_train.arrival_time}" if next_train
     puts "########## The next stop on the train is #{next_stop_time.stop.stop_name}" if next_stop_time
 
-
+    # check if the next stop exists, and is a valid stop
+    # really this is only necessary for the first iteration (because subsequent iterations are checked below); and even then, probably overkill
     if next_stop_time && 
       # we want to check that the stop hasn't been visted before, but we don't care how we got to it in the past
       !stops_visited.collect { |stop_path| stop_path[0] }.include?(next_stop_time.stop.parent_station) &&
@@ -67,6 +67,8 @@ class Stop < ActiveRecord::Base
       self.class.possible_trips << stops_visited
       puts "########## Moved to the next stop"
       puts "########## The time is #{current_time}; the current platform is #{current_platform.stop_name}"
+      puts "########## Stops visited are #{stops_visited}"
+      puts "########## Possible trips are #{self.class.possible_trips}"
 
       # check if we need to make any more stops
       while stops_visited.size < max_stops
@@ -94,7 +96,9 @@ class Stop < ActiveRecord::Base
         # narrow down to valid trains (don't take a train that will duplicate a previously found trip)
         valid_child_stop_times = child_stop_times.select{ |child_stop_time|
           next_stop_time = child_stop_time.next_stop
-          next_stop_time && !self.class.possible_trips.include?(stops_visited.dup.push([next_stop_time.stop.parent_station, next_stop_time.subway_route.route_short_name]))
+          next_stop_time && 
+          !stops_visited.collect { |stop_path| stop_path[0] }.include?(next_stop_time.stop.parent_station) &&
+          !self.class.possible_trips.include?(stops_visited.dup.push([next_stop_time.stop.parent_station, next_stop_time.subway_route.route_short_name]))
         } if child_stop_times && child_stop_times.size > 0
 
         # do the magic on valid trains
