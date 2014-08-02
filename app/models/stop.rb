@@ -42,15 +42,18 @@ class Stop < ActiveRecord::Base
     puts "########## The next #{next_train.subway_route.route_short_name} train will arrive at #{next_train.arrival_time}" if next_train
     puts "########## The next stop on the train is #{next_stop_time.stop.stop_name}" if next_stop_time
 
-    if next_stop_time && !stops_visited.include?(next_stop_time.stop.parent_station) &&
-      !self.class.possible_trips.include?(stops_visited.dup.push(next_stop_time.stop.parent_station))
+
+    if next_stop_time && 
+      # we want to check that the stop hasn't been visted before, but we don't care how we got to it in the past
+      !stops_visited.collect { |stop_path| stop_path[0] }.include?(next_stop_time.stop.parent_station) &&
+      !self.class.possible_trips.include?(stops_visited.dup.push([next_stop_time.stop.parent_station, next_stop_time.subway_route.route_short_name]))
       
       # move to the next stop
       current_platform = next_stop_time.stop
       current_time = Time.parse(next_stop_time.arrival_time.adjust_mod_24)
 
       # record movement
-      stops_visited << current_platform.parent_station
+      stops_visited << [current_platform.parent_station, next_stop_time.subway_route.route_short_name]
       self.class.possible_trips << stops_visited
       puts "########## Moved to the next stop"
       puts "########## The time is #{current_time}; the current platform is #{current_platform.stop_name}"
@@ -81,7 +84,7 @@ class Stop < ActiveRecord::Base
         # narrow down to valid trains (don't take a train that will duplicate a previously found trip)
         valid_child_stop_times = child_stop_times.select{ |child_stop_time|
           next_stop_time = child_stop_time.next_stop
-          next_stop_time && !self.class.possible_trips.include?(stops_visited.dup.push(next_stop_time.stop.parent_station))
+          next_stop_time && !self.class.possible_trips.include?(stops_visited.dup.push([next_stop_time.stop.parent_station, next_stop_time.subway_route.route_short_name]))
         } if child_stop_times && child_stop_times.size > 0
 
         # do the magic on valid trains
@@ -109,7 +112,7 @@ class Stop < ActiveRecord::Base
     # for each array,
     last_stops_arr1, last_stops_arr2 = [arr1, arr2].collect { |arr|
       arr.collect { |sequence|
-        last_stop = Stop.find(sequence.last)
+        last_stop = Stop.find(sequence.last[0])
       }
     }
 
@@ -118,7 +121,7 @@ class Stop < ActiveRecord::Base
         [arr1_stop, arr2_stop] if (arr1_stop.stop_lat - arr2_stop.stop_lat).abs < 0.0035 &&
           (arr1_stop.stop_lon - arr2_stop.stop_lon).abs < 0.0035
       }.compact
-    }.reject { |arr| arr.size == 0}
+    }.uniq.reject { |arr| arr.size == 0}
 
     if common_stops.size > 0
       best_sequences = common_stops.collect { |stop_pair|
@@ -126,13 +129,13 @@ class Stop < ActiveRecord::Base
         # choose the shortest sequence that gets you to the common stop
         arr1_stop = stop_pair.flatten[0]
         arr1_shortest_sequence = arr1.select { |sequence|
-          sequence[-1] == arr1_stop.stop_id
+          sequence[-1][0] == arr1_stop.stop_id
         }.sort_by(&:length)[0]
 
         # choose the shortest sequence that gets you to the common stop
         arr2_stop = stop_pair.flatten[1]
         arr2_shortest_sequence = arr2.select { |sequence|
-          sequence[-1] == arr2_stop.stop_id
+          sequence[-1][0] == arr2_stop.stop_id
         }.sort_by(&:length)[0]
 
         [arr1_shortest_sequence, arr2_shortest_sequence]
