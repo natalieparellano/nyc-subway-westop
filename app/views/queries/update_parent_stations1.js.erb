@@ -1,1 +1,5 @@
-$('#query_parent_station_id1').html("<%= escape_javascript(options_for_select(@parent_stations1.sort_by { |stop| stop.stop_id }.collect { |stop| stop.stop_name })) %>");
+$('#query_parent_station_id1').
+  html("<%= escape_javascript(options_for_select(
+    @parent_stations1.sort_by { |stop| stop.stop_id }.collect { |stop| [stop.stop_name, stop.stop_id] }
+  )) %>"
+);

@@ -5,6 +5,7 @@ Rails.application.routes.draw do
   resources :queries
 
   get 'update_parent_stations1' => 'queries#update_parent_stations1', as: "update_parent_stations1"
+  get 'update_headsigns1' => 'queries#update_headsigns1', as: "update_headsigns1"
   
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".

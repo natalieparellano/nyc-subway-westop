@@ -5,12 +5,17 @@
 
     <div>
       <%= f.label "Choose your line:" %><br>
-      <%= f.collection_select :route_id1, SubwayRoute.all, :route_id, :route_short_name, {id: "route_id1"} %><br>
+      <%= f.collection_select :route_id1, SubwayRoute.all, :route_id, :route_short_name %><br>
     </div>
 
     <div>
       <%= f.label "Choose your starting stop:" %><br>
       <%= f.collection_select :parent_station_id1, @parent_stations1, :stop_id, :stop_name %><br>
+    </div>
+
+    <div>
+      <%= f.label "Choose your direction:" %><br>
+      <%= f.collection_select :stop_id1, @stops1, :stop_id, :stop_name %><br>
     </div>
     
     <%= f.submit "Find common stops" %>
@@ -24,6 +29,15 @@
           url: "<%= update_parent_stations1_path %>",
           data: {
             route_id : $('#query_route_id1').val()
+          },
+          dataType: "script"
+        });
+      });
+      $('#query_parent_station_id1').change(function() {
+        $.ajax({
+          url: "<%= update_headsigns1_path %>",
+          data: {
+            parent_station_id : $('#query_parent_station_id1').val()
           },
           dataType: "script"
         });

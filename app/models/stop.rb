@@ -16,6 +16,14 @@ class Stop < ActiveRecord::Base
     POSSIBLE_TRIPS
   end
 
+  def self.child_platforms_from_route_and_stop_name(route, stop_name)
+    
+  end 
+
+  def self.trip_headsigns
+    joins(:trips).pluck(:trip_headsign).uniq
+  end 
+
   # Game plan
   # just pick one direction to start with
   # given a stop and a route (and maybe a time)
