@@ -11,6 +11,7 @@ class QueriesController < ApplicationController
     raise params.inspect
   end 
 
+  # for updating the dropdown selects
   def update_parent_stations1
     subway_route1 = SubwayRoute.find(params[:route_id])
     @parent_stations1 = subway_route1.parent_stations
@@ -30,4 +31,15 @@ class QueriesController < ApplicationController
     parent_station2 = Stop.find(params[:parent_station_id])
     @stops2 = Stop.child_stations(parent_station2)
   end 
+
+  private
+
+    def query_params
+      params.require(:query).permit(
+        :route_id1, :route_id2, 
+        :parent_station_id1, :parent_station_id2,
+        :stop_id1, :stop_id2,
+        :max_stops1, :max_stops2
+      )
+    end 
 end
