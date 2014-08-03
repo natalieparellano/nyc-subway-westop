@@ -35,8 +35,8 @@ class StopTime < ActiveRecord::Base
       where("stop_times.stop_id = ?", stop.stop_id).
       where("trips.route_id = ?", route.route_id).
       where("substr(stop_times.trip_id,10,3) = ?", datetime.day_of_week).
-      where("time(stop_times.departure_time) >= ?", datetime.strftime('%T')).
-      order("time(stop_times.departure_time)").limit(1)[0]
+      where("to_timestamp(stop_times.departure_time, 'HH24:MI:SS') >= ?", datetime).
+      order("to_timestamp(stop_times.departure_time, 'HH24:MI:SS')").limit(1)[0]
   end
 
   def self.next_departing_train_nextday(stop, route, datetime)
@@ -44,6 +44,6 @@ class StopTime < ActiveRecord::Base
       where("stop_times.stop_id = ?", stop.stop_id).
       where("trips.route_id = ?", route.route_id).
       where("substr(stop_times.trip_id,10,3) = ?", datetime.next_day_of_week).
-      order("time(stop_times.departure_time)").limit(1)[0]
+      order("to_timestamp(stop_times.departure_time, 'HH24:MI:SS')").limit(1)[0]
   end
 end

@@ -78,6 +78,7 @@
 
     // autoscroll on submission
     $("#submit").click(function(){
+      $("#results").text("")
       $('html, body').animate({
           scrollTop: $("#scroll-stop").offset().top
       }, 1000);

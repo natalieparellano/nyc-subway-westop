@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140802220905) do
+ActiveRecord::Schema.define(version: 20140803185221) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -40,6 +40,9 @@ ActiveRecord::Schema.define(version: 20140802220905) do
     t.text    "drop_off_type"
   end
 
+  add_index "stop_times", ["stop_id"], name: "index_stop_times_on_stop_id", using: :btree
+  add_index "stop_times", ["trip_id"], name: "index_stop_times_on_trip_id", using: :btree
+
   create_table "stops", id: false, force: true do |t|
     t.text  "stop_id"
     t.text  "stop_name"
@@ -48,6 +51,9 @@ ActiveRecord::Schema.define(version: 20140802220905) do
     t.text  "location_type"
     t.text  "parent_station"
   end
+
+  add_index "stops", ["parent_station"], name: "index_stops_on_parent_station", using: :btree
+  add_index "stops", ["stop_id"], name: "index_stops_on_stop_id", using: :btree
 
   create_table "subway_routes", id: false, force: true do |t|
     t.text "agency_id"
@@ -60,12 +66,16 @@ ActiveRecord::Schema.define(version: 20140802220905) do
     t.text "route_text_color"
   end
 
+  add_index "subway_routes", ["route_id"], name: "index_subway_routes_on_route_id", using: :btree
+
   create_table "transfers", id: false, force: true do |t|
     t.text "from_stop_id"
     t.text "to_stop_id"
     t.text "transfer_type"
     t.text "min_transfer_time"
   end
+
+  add_index "transfers", ["from_stop_id"], name: "index_transfers_on_from_stop_id", using: :btree
 
   create_table "trips", id: false, force: true do |t|
     t.text "route_id"
@@ -75,5 +85,8 @@ ActiveRecord::Schema.define(version: 20140802220905) do
     t.text "direction_id"
     t.text "shape_id"
   end
+
+  add_index "trips", ["route_id"], name: "index_trips_on_route_id", using: :btree
+  add_index "trips", ["trip_id"], name: "index_trips_on_trip_id", using: :btree
 
 end

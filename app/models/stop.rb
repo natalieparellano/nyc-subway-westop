@@ -79,7 +79,7 @@ class Stop < ActiveRecord::Base
         puts "########## There are #{transfer_ids.size} transfers from #{current_platform.stop_name}"
 
         # find platforms for each transfer, reject invalid transfers (same line, opposite direction)
-        child_platforms = Stop.where("parent_station IN (?)", transfer_ids).reject{ |p| 
+        child_platforms = Stop.where("stops.parent_station IN (?)", transfer_ids).reject{ |p| 
           p.parent_station == current_platform.parent_station && p != current_platform
         } if transfer_ids && transfer_ids.size > 0
         child_platforms.each { |p| puts "########## You can transfer from #{current_platform.stop_id} to #{p.stop_id}" } if child_platforms
