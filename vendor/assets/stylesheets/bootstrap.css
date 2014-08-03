@@ -14,7 +14,7 @@ html {
 }
 body {
   margin: 0;
-  background-image: url(subway_map.png);
+  background: image-url('subway_map.png');
   background-size: 100% auto;
 }
 article,
