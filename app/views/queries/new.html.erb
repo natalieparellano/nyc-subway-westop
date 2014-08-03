@@ -1,23 +1,22 @@
-<h1>Welcome to WeStop!</h1>
-
 <div>
   <%= form_for [Query.new], remote: true do |f| %>
 
-    <div>
-      <h3>Person 1</h3>
+  <div class="row">
+    <div class="col-lg-4 well bs-component">
+      <legend>Person 1</legend>
       <div>
-        <%= f.label "Choose your line:" %><br>
-        <%= f.collection_select :route_id1, SubwayRoute.all, :route_id, :display_name %><br>
+        <%= f.label "Choose your line:"%><br>
+        <%= f.collection_select :route_id1, SubwayRoute.all, :route_id, :display_name, {prompt: ""} %><br>
       </div>
 
       <div>
         <%= f.label "Choose your starting stop:" %><br>
-        <%= f.collection_select :parent_station_id1, @parent_stations1, :stop_id, :stop_name %><br>
+        <%= f.collection_select :parent_station_id1, @parent_stations1, :stop_id, :stop_name, {prompt: ""} %><br>
       </div>
 
       <div>
         <%= f.label "Choose your direction*:" %><br>
-        <%= f.collection_select :stop_id1, @stops1, :stop_id, :stop_name %><br>
+        <%= f.collection_select :stop_id1, @stops1, :stop_id, :stop_name, {prompt: ""} %><br>
       </div>
 
       <div>
@@ -26,21 +25,24 @@
       </div>
     </div>
 
-    <div>
-      <h3>Person 2</h3>
+    <div class="col-lg-1">
+    </div>
+
+    <div class="col-lg-4 well bs-component">
+      <legend>Person 2</legend>
       <div>
         <%= f.label "Choose your line:" %><br>
-        <%= f.collection_select :route_id2, SubwayRoute.all, :route_id, :display_name %><br>
+        <%= f.collection_select :route_id2, SubwayRoute.all, :route_id, :display_name, {prompt: ""} %><br>
       </div>
 
       <div>
         <%= f.label "Choose your starting stop:" %><br>
-        <%= f.collection_select :parent_station_id2, @parent_stations2, :stop_id, :stop_name %><br>
+        <%= f.collection_select :parent_station_id2, @parent_stations2, :stop_id, :stop_name, {prompt: ""} %><br>
       </div>
 
       <div>
         <%= f.label "Choose your direction*:" %><br>
-        <%= f.collection_select :stop_id2, @stops2, :stop_id, :stop_name %><br>
+        <%= f.collection_select :stop_id2, @stops2, :stop_id, :stop_name, {prompt: ""} %><br>
       </div>
 
       <div>
@@ -48,10 +50,17 @@
         <%= f.number_field :max_stops2 %><br>
       </div>
     </div>
-    <p>*Don't worry about the final stop, it's the direction that matters.</p>
-    <%= f.submit "Find common stops" %>
+    <div class="col-lg-4 well bs-component">
+      <p><small>*Don't worry about the final stop, it's the direction that matters.</small></p>
+      <%= f.submit "Find common stops", class: "btn btn-primary", id: "submit" %>
+      <%= f.submit "Reset", :type => "reset", class: "btn btn-default", id: "reset" %>
+    </div>
+  </div>   
   <% end %>
 </div>
+
+<p id="scroll-stop">  </p>
+<br>
 
 <section id="results">
 </section>
@@ -59,43 +68,62 @@
 <script>
   $(document).ready(function() {
 
-      $('#query_route_id1').change(function() {
-        $.ajax({
-          url: "<%= update_parent_stations1_path %>",
-          data: {
-            route_id : $('#query_route_id1').val()
-          },
-          dataType: "script"
-        });
-      });
-      $('#query_parent_station_id1').change(function() {
-        $.ajax({
-          url: "<%= update_headsigns1_path %>",
-          data: {
-            parent_station_id : $('#query_parent_station_id1').val()
-          },
-          dataType: "script"
-        });
-      });
-
-      $('#query_route_id2').change(function() {
-        $.ajax({
-          url: "<%= update_parent_stations2_path %>",
-          data: {
-            route_id : $('#query_route_id2').val()
-          },
-          dataType: "script"
-        });
-      });
-      $('#query_parent_station_id2').change(function() {
-        $.ajax({
-          url: "<%= update_headsigns2_path %>",
-          data: {
-            parent_station_id : $('#query_parent_station_id2').val()
-          },
-          dataType: "script"
-        });
-      });
-
+    // clear form on reset
+    $("#reset").click(function(){
+      $('#query_parent_station_id1').html("");
+      $('#query_stop_id1').html("");
+      $('#query_parent_station_id2').html("");
+      $('#query_stop_id2').html("");
     });
+
+    // autoscroll on submission
+    $("#submit").click(function(){
+      $('html, body').animate({
+          scrollTop: $("#scroll-stop").offset().top
+      }, 1000);
+      
+    });
+
+    // update dropdowns based on previous selection
+    $('#query_route_id1').change(function() {
+      $.ajax({
+        url: "<%= update_parent_stations1_path %>",
+        data: {
+          route_id : $('#query_route_id1').val()
+        },
+        dataType: "script"
+      });
+    });
+
+    $('#query_parent_station_id1').change(function() {
+      $.ajax({
+        url: "<%= update_headsigns1_path %>",
+        data: {
+          parent_station_id : $('#query_parent_station_id1').val()
+        },
+        dataType: "script"
+      });
+    });
+
+    $('#query_route_id2').change(function() {
+      $.ajax({
+        url: "<%= update_parent_stations2_path %>",
+        data: {
+          route_id : $('#query_route_id2').val()
+        },
+        dataType: "script"
+      });
+    });
+
+    $('#query_parent_station_id2').change(function() {
+      $.ajax({
+        url: "<%= update_headsigns2_path %>",
+        data: {
+          parent_station_id : $('#query_parent_station_id2').val()
+        },
+        dataType: "script"
+      });
+    });
+
+  });
 </script>

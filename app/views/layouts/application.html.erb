@@ -7,8 +7,15 @@
   <%= csrf_meta_tags %>
 </head>
 <body>
-
-<%= yield %>
-
+  <div class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <a href="#" class="navbar-brand">Welcome to WeStop!</a>
+      </div>
+    </div>
+  </div>
+  <div class="container" style="padding-top: 75px">
+    <%= yield %>
+  </div>
 </body>
 </html>
