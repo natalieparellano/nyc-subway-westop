@@ -6,8 +6,8 @@ class CreateMigration < ActiveRecord::Migration
       t.text    "arrival_time"
       t.text    "departure_time"
       t.integer "stop_sequence"
-      t.integer "pickup_type"
-      t.integer "drop_off_type"
+      t.text    "pickup_type"
+      t.text    "drop_off_type"
     end
 
     create_table "stops", id: false, force: true do |t|
@@ -15,7 +15,7 @@ class CreateMigration < ActiveRecord::Migration
       t.text    "stop_name"
       t.float   "stop_lat"
       t.float   "stop_lon"
-      t.integer "location_type"
+      t.text    "location_type"
       t.text    "parent_station"
     end
 
@@ -24,7 +24,7 @@ class CreateMigration < ActiveRecord::Migration
       t.text    "route_id"
       t.text    "route_short_name"
       t.text    "route_long_name"
-      t.integer "route_type"
+      t.text    "route_type"
       t.text    "route_url"
       t.text    "route_color"
       t.text    "route_text_color"
@@ -33,8 +33,8 @@ class CreateMigration < ActiveRecord::Migration
     create_table "transfers", id: false, force: true do |t|
       t.text    "from_stop_id"
       t.text    "to_stop_id"
-      t.integer "transfer_type"
-      t.integer "min_transfer_time"
+      t.text    "transfer_type"
+      t.text    "min_transfer_time"
     end
 
     create_table "trips", id: false, force: true do |t|
@@ -42,8 +42,8 @@ class CreateMigration < ActiveRecord::Migration
       t.text    "trip_id"
       t.text    "service_id"
       t.text    "trip_headsign"
-      t.integer "direction_id"
-      t.integer "shape_id"
+      t.text    "direction_id"
+      t.text    "shape_id"
     end
   end
 end
