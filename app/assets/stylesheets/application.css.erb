@@ -14,3 +14,9 @@
  * require_self
  *= require bootstrap
  */
+
+//= depend_on_asset "subway_map.png"
+
+body {
+  background-image: url('<%= asset_path("subway_map.png") %> ');
+}

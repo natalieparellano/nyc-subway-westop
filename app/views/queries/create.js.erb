@@ -1,2 +1,5 @@
 $("#results").text("")
 $("#results").append("<%=j render @query  %>");
+$('html, body').animate({
+    scrollTop: $("#scroll-stop").offset().top
+}, 1000);
