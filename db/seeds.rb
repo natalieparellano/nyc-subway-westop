@@ -35,3 +35,26 @@ seed_trips = "
   FROM '#{Rails.root}/db/export-formatted-csv/trips.csv' 
   DELIMITER ',' CSV"
 ActiveRecord::Base.connection.execute seed_trips
+
+
+##########
+# Only keep stop times that will uniquely populate the stops for each subway route
+SubwayRoute.all.each { |subway_route|
+  unique_stops = subway_route.stops.uniq.count
+  trips_to_keep = []
+
+  subway_route.trips.each { |trip|
+    break if trips_to_keep.collect { |t| t.stops }.flatten.uniq.size == unique_stops
+
+    unless trips_to_keep.collect { |t| t.stops }.include? trip.stops 
+      trip.stop_times.each { |st| 
+        st.save_this_record = true
+        st.save
+      } 
+
+      trips_to_keep << trip
+    end 
+  }
+}
+
+StopTime.where("save_this_record = false").each { |st| st.destroy }

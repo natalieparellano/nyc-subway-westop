@@ -1,5 +1,8 @@
 source 'https://rubygems.org'
 
+# composite primary keys
+gem 'composite_primary_keys', '=7.0.10'
+
 # use postgres for heroku
 gem 'pg'
 

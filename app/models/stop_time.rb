@@ -1,4 +1,6 @@
 class StopTime < ActiveRecord::Base
+  self.primary_keys = [:trip_id, :stop_id, :arrival_time]
+
   belongs_to :trip
   belongs_to :stop
 
